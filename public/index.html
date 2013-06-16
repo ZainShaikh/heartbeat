@@ -1,0 +1,59 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+</head>
+<body>
+test
+
+
+<div>
+
+<button id="start">Start</button>
+<button id="stop">Stop</button>
+<button id="new">New message</button>
+
+<div id="result"></div>
+
+</div>
+
+
+
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+    <script type="text/javascript" src="js/core/heartbeat.js"></script>
+    <script type="text/javascript">
+        var log = function (d) { window.console && console.log(d); }
+
+        var streamEndpoint = '/api/messages/stream'
+        var newMessageEndpoint = '/api/messages/new'
+        var heartbeat = new Heartbeat(streamEndpoint)
+
+        $('#start').click(function () {
+
+            heartbeat.start(null, function (response) {
+
+                log(response);
+                $.each(response.messages, function (i, item) {
+                    $('#result').prepend($('<div />').html(item));
+                });
+            });
+
+        });
+
+
+        $('#stop').click(function () {
+            heartbeat.stop();
+        });
+
+
+        $('#new').click(function () {
+            var message = prompt('message: ');
+            $.post(newMessageEndpoint, { message: message }, function (response) {
+                log(response);
+            });
+        });
+
+    </script>
+</body>
+</html>
