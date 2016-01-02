@@ -1,9 +1,11 @@
 (function() {
   window.Heartbeat = (function() {
-    function Heartbeat(endpoint, interval) {
+    function Heartbeat(endpoint, interval, options) {
       this.endpoint = endpoint;
       this.interval = interval != null ? interval : 600;
       this.started = false;
+      this.token = Math.random().toString(36).substr(2);
+      this.sender = options.sender;
     }
 
     Heartbeat.prototype.start = function(params, callback) {
@@ -15,6 +17,11 @@
       var self;
 
       self = this;
+
+      params = params || {};
+      params["token"] = self.token;
+      params["sender"] = self.sender;
+
       return $.ajax({
         url: this.endpoint,
         data: params,

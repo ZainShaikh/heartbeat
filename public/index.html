@@ -3,56 +3,97 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title></title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap-theme.min.css">
 </head>
 <body>
-test
 
+<br /> 
 
-<div>
+<div class="container">
 
-<button id="start">Start</button>
-<button id="stop">Stop</button>
-<button id="new">New message</button>
+<!-- <button id="start">Start</button>
+<button id="stop">Stop</button> 
+<button id="new">New message</button>-->
 
-<div id="result"></div>
+<textarea class="form-control" id="new" placeholder="Type your message here!"></textarea>
+
+<ul class="list-group" id="result"></ul>
 
 </div>
 
 
 
-    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+    <script type="text/javascript" src="js/libs/jquery-1.11.0.js"></script>
     <script type="text/javascript" src="js/core/heartbeat.js"></script>
     <script type="text/javascript">
         var log = function (d) { window.console && console.log(d); }
 
+
+        var sender = prompt("Your name:");
         var streamEndpoint = '/api/messages/stream'
         var newMessageEndpoint = '/api/messages/new'
-        var heartbeat = new Heartbeat(streamEndpoint)
+        var heartbeat = new Heartbeat(streamEndpoint, 600, {
+            sender: sender
+        });
 
-        $('#start').click(function () {
+
+
+        window.onbeforeunload = function(){
+            heartbeat.stop();
+        }
+
+        // $('#stop').click(function () {
+        //     heartbeat.stop();
+        // });
+
+
+        
+
+        $('#new').empty().focus().on('keydown', function (e) {
+            if (e.keyCode !== 13) { 
+                return;
+            }
+
+            var $this = $(this);
+            var message = $this.val();
+            $this.val('');
+            $.post(newMessageEndpoint, { sender: sender, message: message }, function (response) {
+                log(response);
+                $this.empty().focus();
+            });
+
+            return false;
+        });
+
+
+
+        //$('#start').click(function () {
 
             heartbeat.start(null, function (response) {
 
                 log(response);
                 $.each(response.messages, function (i, item) {
-                    $('#result').prepend($('<div />').html(item));
+                    var x = $('<li class="list-group-item" />');
+
+                    if( item.name ) {
+
+                        if ( item.name == sender) {
+                            x.css({ 'background-color': '#F5F5F5' });
+                        }
+
+                       x.append('<b>'+item.name+': </b>');
+                    }
+
+                    x.append(item.message);
+
+                    $('#result').prepend(x);
                 });
             });
 
-        });
+        //});
 
-
-        $('#stop').click(function () {
-            heartbeat.stop();
-        });
-
-
-        $('#new').click(function () {
-            var message = prompt('message: ');
-            $.post(newMessageEndpoint, { message: message }, function (response) {
-                log(response);
-            });
-        });
 
     </script>
 </body>

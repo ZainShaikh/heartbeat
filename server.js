@@ -42,10 +42,16 @@ var all_users = {};
 app.get('/api/messages/stream', function (req, res) {
     
     // get user agent
-    var user_agent = req.headers['user-agent'];
+    //var user_agent = req.headers['user-agent'];
+    var token = req.query.token;
+    var sender = req.query.sender;
+
+    if( !all_users[token] ) {
+        notify(null, sender + ' has joined the chat');
+    }
 
     // fetch user from global list based on user agent
-    var user = all_users[user_agent] || (all_users[user_agent] = {});
+    var user = all_users[token] || (all_users[token] = { });
 
     console.log(all_users);
 
@@ -84,7 +90,7 @@ app.get('/api/messages/stream', function (req, res) {
 
             // return response
             res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Content-Length', json.length);
+            //res.setHeader('Content-Length', json.length);
             res.send(json);
             res.end();
 
@@ -103,7 +109,7 @@ app.get('/api/messages/stream', function (req, res) {
 
                 // return response
                 res.setHeader('Content-Type', 'application/json');
-                res.setHeader('Content-Length', json.length);
+                //res.setHeader('Content-Length', json.length);
                 res.send(json);
                 res.end();
             }
@@ -115,26 +121,40 @@ app.get('/api/messages/stream', function (req, res) {
 });
 
 
-app.post('/api/messages/new', function (req, res) {
 
-    // get message from post body
-    var message = req.body.message;
+function notify(sender, message){
 
     // store message for all users 
     for (var u in all_users) {
         if (all_users.hasOwnProperty(u)) {
             var user = all_users[u];
             user.messages = user.messages || [];
-            user.messages.push(message);
+            user.messages.push({
+                name: sender,
+                message: message
+            });
         }
     }
 
     // prepare json object
-    var json = { message: message };
+    var json = { name: sender, message: message };
+
+    return json;
+}
+
+
+
+app.post('/api/messages/new', function (req, res) {
+
+    // get message from post body
+    var message = req.body.message;
+    var sender = req.body.sender;
+
+    var json = notify(sender, message);
 
     // return response
     res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Length', json.length);
+    //res.setHeader('Content-Length', json.length);
     res.send(json);
     res.end();
 });
